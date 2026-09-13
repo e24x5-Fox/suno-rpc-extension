@@ -8,6 +8,11 @@
 > **[suno-discord-rpc](https://github.com/e24x5-Fox/suno-discord-rpc)**.
 > Там же лежит установщик.
 
+Данные уходят только на `ws://localhost:6969`, то есть на тот же компьютер.
+Политика конфиденциальности —
+<https://e24x5-fox.github.io/suno-rpc-extension/>, её исходник в `docs/`.
+Тексты для Chrome Web Store и скриншоты — в `store/`.
+
 ---
 
 ## Что оно передаёт

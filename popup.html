@@ -5,15 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Suno → Discord RPC</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
-
+    /*
+      Шрифт берётся из системы, а не с fonts.googleapis.com. Загрузка шрифта с
+      чужого сервера делала три плохие вещи сразу: сообщала Google об открытии
+      окна расширения, оставляла окно без нужного шрифта без интернета и давала
+      проверяющим Chrome Web Store повод спросить про внешние ресурсы.
+    */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       width: 340px;
       background: #0d0d0f;
       color: #e8e8e8;
-      font-family: 'Space Mono', monospace;
+      font-family: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas, 'Roboto Mono', monospace;
       font-size: 12px;
     }
 
@@ -116,7 +120,7 @@
 
   <div class="status-section">
     <div class="status-row">
-      <span class="status-label">Python сервер</span>
+      <span class="status-label">Приложение Suno RPC</span>
       <span class="badge disconnected" id="server-status">Не подключён</span>
     </div>
     <div class="status-row">
@@ -142,7 +146,7 @@
   </div>
 
   <div class="footer">
-    Запусти <strong>suno_rpc.py</strong> перед использованием.
+    Запусти приложение <strong>Suno RPC</strong> на компьютере — без него трек некуда передавать.
   </div>
 
   <script src="popup.js"></script>

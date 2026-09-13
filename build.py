@@ -30,27 +30,49 @@ OUT_DIR = os.path.join(ROOT, "dist")
 # Firefox поддерживает это расширение? От этого зависит, собирать ли .xpi.
 FIREFOX = False
 
-# В архив идёт только само расширение: файлы репозитория браузеру не нужны,
-# а валидатор addons.mozilla.org на посторонние файлы ругается.
-SKIP_NAMES = {"build.py", "README.md", ".gitignore", ".DS_Store", "Thumbs.db", "desktop.ini"}
+# В архив идёт только само расширение: файлы репозитория браузеру не нужны, а
+# магазин на посторонние файлы ругается.
+#
+# Список задан перечислением, а не «всё, кроме известного мусора»: при обратном
+# подходе в архив уезжало всё, что просто лежит рядом в рабочей папке, — и
+# заметить это можно было только по размеру архива. Так, папки docs/ (страница
+# политики конфиденциальности) и store/ (тексты заявки) появились позже сборки и
+# при чёрном списке молча попали бы в архив. Цена — добавляя расширению новый
+# файл, его нужно вписать сюда же.
+INCLUDE_FILES = {
+    "manifest.json", "background.js", "content.js",
+    "offscreen.html", "offscreen.js", "popup.html", "popup.js",
+}
+INCLUDE_DIRS = {"icons"}
+
+# Внутри включённых папок всё равно может завестись мусор от системы и редакторов.
+SKIP_NAMES = {".DS_Store", "Thumbs.db", "desktop.ini"}
 SKIP_EXT = {".pem", ".crx", ".zip", ".xpi", ".log", ".bak", ".md"}
-SKIP_DIRS = {".git", "dist", "node_modules", "__pycache__"}
 
 # Дата внутри архива фиксирована, иначе одинаковый исходник давал бы разные
 # файлы при каждой сборке (в ZIP пишется время модификации).
 FIXED_DATE = (2026, 1, 1, 0, 0, 0)
 
 
+def skipped(name):
+    return name in SKIP_NAMES or os.path.splitext(name)[1].lower() in SKIP_EXT
+
+
 def collect():
     files = []
-    for dirpath, dirnames, filenames in os.walk(ROOT):
-        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
-        for name in sorted(filenames):
-            if name in SKIP_NAMES or os.path.splitext(name)[1].lower() in SKIP_EXT:
+    for name in sorted(os.listdir(ROOT)):
+        full = os.path.join(ROOT, name)
+        if os.path.isdir(full):
+            if name not in INCLUDE_DIRS:
                 continue
-            full = os.path.join(dirpath, name)
-            rel = os.path.relpath(full, ROOT).replace(os.sep, "/")
-            files.append((full, rel))
+            for dirpath, _dirnames, filenames in os.walk(full):
+                for fname in sorted(filenames):
+                    if skipped(fname):
+                        continue
+                    f = os.path.join(dirpath, fname)
+                    files.append((f, os.path.relpath(f, ROOT).replace(os.sep, "/")))
+        elif name in INCLUDE_FILES and not skipped(name):
+            files.append((full, name))
     return sorted(files, key=lambda t: t[1])
 
 

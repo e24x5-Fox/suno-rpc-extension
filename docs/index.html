@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suno → Discord RPC — политика конфиденциальности</title>
+<style>
+  :root { --bg:#0e0e10; --card:#17171b; --line:#26262c; --text:#ececf1; --muted:#8a8a94; --accent:#8b5cf6; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text);
+         font:16px/1.65 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  .bar { height:4px; background:var(--accent); }
+  main { max-width:760px; margin:0 auto; padding:32px 20px 64px; }
+  h1 { font-size:28px; margin:24px 0 4px; }
+  h2 { font-size:19px; margin:32px 0 8px; }
+  .sub { color:var(--muted); margin:0 0 8px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin:18px 0; }
+  ul { padding-left:20px; }
+  li { margin:6px 0; }
+  code { background:#000; border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:14px; }
+  a { color:var(--accent); }
+  .en { color:var(--muted); }
+  .en h2 { color:var(--text); }
+  footer { color:var(--muted); font-size:13px; border-top:1px solid var(--line); margin-top:40px; padding-top:16px; }
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<main>
+
+<h1>Suno → Discord RPC</h1>
+<p class="sub">Политика конфиденциальности. Обновлено 13 сентября 2026 года.</p>
+
+<div class="card">
+  <strong>Коротко: данные никуда не уходят с вашего компьютера.</strong> Расширение
+  передаёт сведения о треке только приложению Suno RPC, запущенному на этом же
+  компьютере, по адресу <code>ws://localhost:6969</code>. Сервера у автора нет,
+  аналитики и рекламы нет.
+</div>
+
+<h2>Что делает расширение</h2>
+<p>
+  Расширение читает, что сейчас играет в плеере на <code>suno.com</code>, и передаёт это
+  приложению <a href="https://github.com/e24x5-Fox/suno-discord-rpc">Suno RPC</a> на вашем
+  компьютере. Приложение показывает трек в вашем статусе Discord. Без запущенного
+  приложения расширение бесполезно: отправлять данные некуда.
+</p>
+
+<h2>Какие данные обрабатываются</h2>
+<ul>
+  <li><strong>Сведения о треке</strong> со страницы Suno: название, исполнитель, ссылка на
+      обложку и на трек, длительность, текущая позиция и признак паузы.</li>
+  <li><strong>Спектр звука вкладки.</strong> Звук захватывается только для того, чтобы
+      посчитать уровни частот для визуализаций. Сам звук не записывается и не сохраняется:
+      наружу уходят только числа спектра.</li>
+  <li><strong>Последнее состояние</strong> хранится в <code>chrome.storage.local</code>,
+      чтобы окно расширения показывало текущий трек сразу при открытии.</li>
+</ul>
+<p>
+  Расширение не читает ваш аккаунт Suno, не трогает другие вкладки и сайты, не собирает
+  историю просмотров, местоположение, переписку и платёжные данные.
+</p>
+
+<h2>Куда уходят данные</h2>
+<p>
+  Только на <code>ws://localhost:6969</code> — это ваш собственный компьютер. Соединение не
+  выходит за пределы устройства, и у автора нет сервера, который мог бы что-то принять.
+  Данные не продаются и не передаются третьим лицам. Что именно приложение показывает в
+  Discord, решаете вы в его настройках; передачей статуса в Discord занимается приложение,
+  а не расширение.
+</p>
+
+<h2>Разрешения</h2>
+<ul>
+  <li><code>activeTab</code> и <code>tabCapture</code> — захват звука вкладки Suno для
+      подсчёта спектра.</li>
+  <li><code>offscreen</code> — считать спектр в скрытом документе; в Manifest V3 обработка
+      звука иначе невозможна.</li>
+  <li><code>alarms</code> — будить служебный процесс, чтобы соединение с приложением не
+      обрывалось, пока вкладка в фоне.</li>
+  <li><code>storage</code> — хранить последнее состояние для окна расширения.</li>
+  <li>Доступ к <code>suno.com</code> — читать плеер только на этом сайте.</li>
+</ul>
+
+<h2>Дети</h2>
+<p>Расширение не предназначено специально для детей и не собирает данные о ком бы то ни было.</p>
+
+<h2>Изменения</h2>
+<p>
+  Если политика изменится, новая версия появится на этой странице с новой датой. Исходный
+  код открыт, и любые изменения видны в истории репозитория.
+</p>
+
+<h2>Связь</h2>
+<p>
+  Вопросы и замечания — в
+  <a href="https://github.com/e24x5-Fox/suno-rpc-extension/issues">разделе Issues репозитория</a>.
+</p>
+
+<div class="en">
+<h2>English summary</h2>
+<p>
+  The extension reads what is playing in the player on <code>suno.com</code> — title,
+  artist, cover and track links, duration, position, paused state — and computes an audio
+  spectrum from the tab's sound for visualisations. It sends that to
+  <code>ws://localhost:6969</code>, the companion
+  <a href="https://github.com/e24x5-Fox/suno-discord-rpc">Suno RPC</a> application running
+  on the same computer, which shows the track in the user's Discord status.
+</p>
+<p>
+  <strong>Nothing leaves the user's device.</strong> The author operates no server, and the
+  extension contains no analytics, ads or third-party code. Captured audio is never
+  recorded or stored — only frequency levels are passed on. The last known state is kept in
+  <code>chrome.storage.local</code> so the popup can show the current track immediately. No
+  data is sold or shared with third parties. Questions:
+  <a href="https://github.com/e24x5-Fox/suno-rpc-extension/issues">GitHub Issues</a>.
+</p>
+</div>
+
+<footer>
+  Открытый исходный код:
+  <a href="https://github.com/e24x5-Fox/suno-rpc-extension">github.com/e24x5-Fox/suno-rpc-extension</a>
+</footer>
+
+</main>
+</body>
+</html>
