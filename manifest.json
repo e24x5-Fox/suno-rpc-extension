@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Suno → Discord RPC",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Показывает трек с suno.com в статусе Discord. Работает вместе с приложением Suno RPC на вашем компьютере.",
   "permissions": [
     "activeTab",
@@ -21,7 +21,8 @@
         "https://www.suno.com/*"
       ],
       "js": [
-        "content.js"
+        "content.js",
+        "picker.js"
       ],
       "run_at": "document_idle"
     }

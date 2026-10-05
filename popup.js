@@ -92,3 +92,92 @@ delaySlider.addEventListener('input', () => {
 });
 
 refreshDelayInfo();
+
+// ── Привязки «откуда читать» (редактор живёт в picker.js на странице) ──────
+const BIND_KEY = "bindings";
+const BIND_FIELDS = [
+  ["title",  "Название"],
+  ["artist", "Исполнитель"],
+  ["cover",  "Обложка"],
+];
+const bindRows = document.getElementById('bind-rows');
+const bindHint = document.getElementById('bind-hint');
+
+// Suno часто открыта отдельным окном-приложением, а не активной вкладкой —
+// поэтому ищем её среди всех вкладок, предпочитая ту, что играет.
+async function findSunoTab() {
+  const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (active && /^https:\/\/(www\.)?suno\.com\//.test(active.url || "")) return active;
+  const all = await chrome.tabs.query({ url: ["https://suno.com/*", "https://www.suno.com/*"] });
+  return all.find((t) => t.audible) || all[0] || null;
+}
+
+function showHint(text, warn) {
+  bindHint.textContent = text;
+  bindHint.className = 'bind-hint' + (warn ? ' warn' : '');
+}
+
+function renderBindings(stored, live) {
+  bindRows.innerHTML = "";
+  for (const [field, name] of BIND_FIELDS) {
+    const selector = stored[field] || "";
+    const info = live?.[field];
+    let text = "авто", cls = "";
+    if (selector) {
+      if (!live)              { text = selector; }
+      else if (info?.value)   { text = "✓ " + info.value; cls = "ok"; }
+      else if (info?.found)   { text = "элемент найден, но пуст"; cls = "miss"; }
+      else                    { text = "элемент не найден — работает авто"; cls = "miss"; }
+    }
+    const row = document.createElement('div');
+    row.className = 'bind-row';
+    row.innerHTML = `
+      <div class="bind-info">
+        <div class="bind-name">${name}</div>
+        <div class="bind-value ${cls}"></div>
+      </div>
+      <button class="bind-btn pick" title="Выбрать элемент на странице">🎯</button>
+      <button class="bind-btn reset" title="Сбросить привязку" ${selector ? "" : "hidden"}>✕</button>`;
+    const valueEl = row.querySelector('.bind-value');
+    valueEl.textContent = text;
+    valueEl.title = selector;
+    row.querySelector('.pick').addEventListener('click', () => startPick(field));
+    row.querySelector('.reset').addEventListener('click', () => resetBinding(field));
+    bindRows.appendChild(row);
+  }
+}
+
+async function refreshBindings() {
+  const stored = (await chrome.storage.local.get(BIND_KEY))[BIND_KEY] || {};
+  const tab = await findSunoTab();
+  let live = null;
+  if (tab) {
+    try { live = await chrome.tabs.sendMessage(tab.id, { type: "GET_BINDINGS" }); } catch {}
+  }
+  renderBindings(stored, live);
+}
+
+async function startPick(field) {
+  const tab = await findSunoTab();
+  if (!tab) { showHint("Сначала открой suno.com.", true); return; }
+  try {
+    await chrome.tabs.sendMessage(tab.id, { type: "START_PICK", field });
+  } catch {
+    // Вкладка открыта до установки/обновления расширения — в ней старый
+    // content script без редактора.
+    showHint("Обнови страницу Suno (F5) — она открыта до обновления расширения.", true);
+    return;
+  }
+  await chrome.tabs.update(tab.id, { active: true });
+  await chrome.windows.update(tab.windowId, { focused: true });
+  window.close();
+}
+
+async function resetBinding(field) {
+  const stored = (await chrome.storage.local.get(BIND_KEY))[BIND_KEY] || {};
+  delete stored[field];
+  await chrome.storage.local.set({ [BIND_KEY]: stored });
+  refreshBindings();
+}
+
+refreshBindings();

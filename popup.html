@@ -98,6 +98,33 @@
     }
     .delay-val { color: #5865f2; font-weight: 700; font-size: 11px; }
     .delay-sub { color: #555; font-size: 9px; margin-top: 4px; line-height: 1.5; }
+    /* BINDINGS */
+    .bind-section { padding: 12px 16px; border-bottom: 1px solid #1a1a1a; }
+    .bind-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 0; border-top: 1px solid #151515;
+    }
+    .bind-row:first-of-type { border-top: none; }
+    .bind-info { flex: 1; min-width: 0; }
+    .bind-name { color: #ccc; font-size: 11px; }
+    .bind-value {
+      color: #555; font-size: 9px; margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .bind-value.ok   { color: #3ba55d; }
+    .bind-value.miss { color: #ed4245; }
+    .bind-btn {
+      background: #1a1a2e; color: #c8c8ff; border: 1px solid #5865f244;
+      border-radius: 4px; padding: 4px 7px; font: inherit; font-size: 11px;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .bind-btn:hover { border-color: #5865f2; }
+    .bind-btn.reset { color: #888; border-color: #333; background: #141414; }
+    .bind-btn.reset:hover { color: #ed4245; border-color: #ed424588; }
+    .bind-btn[hidden] { display: none; }
+    .bind-hint { color: #555; font-size: 9px; margin-top: 6px; line-height: 1.5; }
+    .bind-hint.warn { color: #faa61a; }
+
     input[type=range] {
       width: 100%; -webkit-appearance: none; height: 3px; border-radius: 99px;
       background: #222; outline: none; cursor: pointer; margin-top: 4px;
@@ -142,6 +169,15 @@
     <input type="range" id="delay-offset" min="-200" max="400" step="10" value="0">
     <div class="delay-sub">
       Подстройка поверх авто-замера — если звук всё ещё опережает волну в оверлее, двигай вправо.
+    </div>
+  </div>
+
+  <div class="bind-section">
+    <div class="status-label">Откуда читать</div>
+    <div id="bind-rows"></div>
+    <div class="bind-hint" id="bind-hint">
+      🎯 — наведи мышь на нужный элемент плеера на странице Suno и кликни.
+      Без привязки расширение ищет данные само.
     </div>
   </div>
 

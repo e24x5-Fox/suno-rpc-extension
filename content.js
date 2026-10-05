@@ -143,6 +143,50 @@ function readArtist(scope) {
   return fromSpan ? dedupeMarquee(fromSpan) : "Suno AI";
 }
 
+// ── Привязки из редактора (picker.js) ───────────────────────────────────────
+// Пользователь может сам показать, из какого элемента страницы читать
+// название, исполнителя и обложку. Привязка проверяется первой; если
+// элемент по ней не нашёлся или пуст, работают встроенные способы выше —
+// так неудачная привязка ничего не ломает.
+const extApi = typeof browser !== "undefined" ? browser : chrome;
+const BIND_KEY = "bindings";
+let bindings = {};   // { title?: селектор, artist?: селектор, cover?: селектор }
+
+try {
+  extApi.storage.local.get(BIND_KEY, (r) => { bindings = r?.[BIND_KEY] || {}; });
+  extApi.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes[BIND_KEY]) bindings = changes[BIND_KEY].newValue || {};
+  });
+} catch {}
+
+function boundValue(field, el) {
+  if (!el) return "";
+  if (field === "cover") {
+    const img = el.tagName === "IMG" ? el : el.querySelector("img");
+    if (img) {
+      return normalizeCoverUrl(img.getAttribute("data-src") || img.getAttribute("src") || img.currentSrc);
+    }
+    const bg = /url\(["']?(.+?)["']?\)/.exec(getComputedStyle(el).backgroundImage || "");
+    return normalizeCoverUrl(bg?.[1]);
+  }
+  const text = cleanTitle(el.innerText || el.textContent);
+  if (text) return text;
+  // У элемента без текста значение бывает только в подписи —
+  // «Playbar: Title for <название>»: служебную часть отрезаем.
+  const label = el.getAttribute("aria-label") || el.getAttribute("title") || "";
+  return cleanTitle(label.replace(/^Playbar:.*?\bfor\s+/i, ""));
+}
+
+function boundElement(field) {
+  const sel = bindings[field];
+  if (!sel) return null;
+  try { return document.querySelector(sel); } catch { return null; }
+}
+
+function readBound(field) {
+  return boundValue(field, boundElement(field));
+}
+
 function getTrackData() {
   try {
     const audio = pickAudio();
@@ -151,8 +195,8 @@ function getTrackData() {
     const cover = coverImage();
     const scope = playbarScope(cover);
 
-    let coverUrl = "";
-    if (cover) {
+    let coverUrl = readBound("cover");
+    if (!coverUrl && cover) {
       // .src (свойство) в content script может вернуть пустую строку —
       // читаем именно атрибуты, data-src это версия в большом разрешении.
       coverUrl = normalizeCoverUrl(cover.getAttribute('data-src') || cover.getAttribute('src'));
@@ -171,7 +215,7 @@ function getTrackData() {
 
     // Ключ трека — по чему понимаем, что запомненное название всё ещё про него.
     const trackKey = trackUrl || coverUrl || String(Math.round(audio.duration || 0));
-    let title = readTitle(cover, scope);
+    let title = readBound("title") || readTitle(cover, scope);
 
     if (title) {
       lastTrackKey  = trackKey;
@@ -196,7 +240,7 @@ function getTrackData() {
       // старые сборки расширения из-за этого продолжают работать.
       source: "suno",
       title,
-      artist: readArtist(scope),
+      artist: readBound("artist") || readArtist(scope),
       coverUrl, trackUrl,
       duration: Math.floor(audio.duration) || 0,
       elapsed: Math.floor(audio.currentTime) || 0,

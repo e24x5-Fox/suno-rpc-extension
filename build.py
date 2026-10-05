@@ -40,7 +40,7 @@ FIREFOX = False
 # при чёрном списке молча попали бы в архив. Цена — добавляя расширению новый
 # файл, его нужно вписать сюда же.
 INCLUDE_FILES = {
-    "manifest.json", "background.js", "content.js",
+    "manifest.json", "background.js", "content.js", "picker.js",
     "offscreen.html", "offscreen.js", "popup.html", "popup.js",
 }
 INCLUDE_DIRS = {"icons"}
