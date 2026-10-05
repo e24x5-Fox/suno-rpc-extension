@@ -53,8 +53,40 @@ function pickAudio() {
       || all[0];
 }
 
+// Обложка плеера. Suno не раз переделывала её разметку (жалоба 2026-10-05:
+// «картинки давно не передаются» — точный aria-label перестал находиться,
+// а с ним пропали и coverUrl, и вычисляемая из него ссылка на трек), поэтому
+// пробуем несколько вариантов от строгого к мягкому.
 function coverImage() {
-  return document.querySelector('img[aria-label^="Playbar: Cover image"]');
+  return document.querySelector('img[aria-label^="Playbar: Cover image"]')
+      || document.querySelector('img[aria-label*="Cover image" i]')
+      || document.querySelector('img[alt^="Playbar: Cover image"]')
+      || document.querySelector('img[alt*="Cover image" i]');
+}
+
+// Обложка из Media Session — та картинка, что Suno отдаёт системному плееру
+// Windows. Не зависит от вёрстки страницы, поэтому служит запасным путём,
+// когда <img> плеера не нашёлся. Берём самый крупный вариант.
+function mediaSessionCover() {
+  try {
+    const art = [...(navigator.mediaSession?.metadata?.artwork || [])]
+      .filter((a) => /^https?:\/\//i.test(a?.src || ""));
+    if (!art.length) return "";
+    const area = (a) => {
+      const m = /(\d+)\s*x\s*(\d+)/i.exec(a.sizes || "");
+      return m ? m[1] * m[2] : 0;
+    };
+    art.sort((a, b) => area(b) - area(a));
+    return art[0].src;
+  } catch { return ""; }
+}
+
+// Параметры вроде ?width=100 у CDN Suno только уменьшают картинку — срезаем.
+// У чужих адресов запрос может быть частью ссылки, их не трогаем.
+function normalizeCoverUrl(url) {
+  url = String(url || "").trim();
+  if (/^https?:\/\/[^/]*suno\.(ai|com)\//i.test(url)) url = url.replace(/\?.*$/, "");
+  return /^https?:\/\//i.test(url) ? url : "";
 }
 
 // Зона плеера: поднимаемся от обложки вверх, пока не найдём предка, внутри
@@ -123,9 +155,9 @@ function getTrackData() {
     if (cover) {
       // .src (свойство) в content script может вернуть пустую строку —
       // читаем именно атрибуты, data-src это версия в большом разрешении.
-      coverUrl = cover.getAttribute('data-src') || cover.getAttribute('src') || "";
-      coverUrl = coverUrl.replace(/\?.*$/, "");
+      coverUrl = normalizeCoverUrl(cover.getAttribute('data-src') || cover.getAttribute('src'));
     }
+    if (!coverUrl) coverUrl = normalizeCoverUrl(mediaSessionCover());
 
     let trackUrl = "";
     const songLink =
